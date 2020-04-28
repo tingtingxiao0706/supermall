@@ -1,13 +1,21 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <scroll class="content">
+    <scroll class="content"
+        ref="bscroll" 
+        :probe-type="3" 
+        :pull-upload="true"
+        @scroll="contentScroll"
+        >
       <home-swiper :banner="banner"/>
       <recommend-view :recommend='recommend'/>
       <feature-view/>
-      <tab-control class="tab-control" @tabClick="tabClick" :titles="['流行','新款','精选']"/>
+      <tab-control class="tab-control" 
+        @tabClick="tabClick" 
+        :titles="['流行','新款','精选']"/>
       <goods-list :goods="goods[currentType].list"/>
     </scroll>
+    <back-top v-show="isShowBackTop" @click.native="backClick"/>
   </div>
 </template>
 
@@ -20,8 +28,10 @@ import FeatureView from './childComps/FeatureView'
 
 import TabControl from 'components/content/tabControl/TabControl'
 import GoodsList from 'components/content/goods/GoodsList'
+import BackTop from 'components/content/backTop/BackTop'
 
 import {getHomeMultidata,getHomeGoods} from 'network/home'
+import {debounce} from 'common/utils'
 
 export default {
   name:'home',
@@ -32,13 +42,15 @@ export default {
     RecommendView,
     FeatureView,
     TabControl,
-    GoodsList
+    GoodsList,
+    BackTop
   },
   data(){
     return {
       banner:[],
       recommend:[],
       currentType:'pop',
+      isShowBackTop:false,
       goods:{
         'pop':{page:1,list:[
           {
@@ -62,6 +74,32 @@ export default {
             cfav:1200
           },
           {
+            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
+            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
+            price:69,
+            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
+            cfav:1200
+          },
+          {
+            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
+            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
+            price:69,
+            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
+            cfav:1200
+          },{
+            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
+            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
+            price:69,
+            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
+            cfav:1200
+          },
+          {
+            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
+            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
+            price:69,
+            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
+            cfav:1200
+          },{
             link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
             image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
             price:69,
@@ -135,13 +173,31 @@ export default {
   created(){
     //1、请求多个数据
     this.getMultidata();
-    //请求商品数据
+    //2、请求商品数据
     //this.getGoods('pop')
+  },
+  mounted(){
+    //3、监听item中图片加载完成
+    //在created中监听可能会导致一个错误：如果scroll组件还没渲染出来，是获取不到scroll的
+    //但比较频繁，需要优化,防抖函数
+    const refresh=debounce(this.$refs.bscroll.refresh,500);
+    this.$bus.$on('itemImageLoad',()=>{
+      //this.$refs.bscroll.refresh();//这样会调用8次
+      refresh();
+    })
   },
   methods:{
     //事件监听的相关方法
     tabClick(index){
       this.currentType=Object.keys(this.goods)[index];
+    },
+    //返回顶部
+    backClick(){
+      this.$refs.bscroll.scrollTo(0,0);
+    },
+    //滚动到一定位置显示返回顶部按钮
+    contentScroll(position){
+      position.y<-500?this.isShowBackTop=true:this.isShowBackTop=false;
     },
     // 网络请求相关的方法
     getMultidata(){
@@ -155,7 +211,16 @@ export default {
       getHomeGoods(type,page).then(res=>{
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page+=1;
+
+        //完成上拉加载更多
+        this.$refs.scroll.finishPullUp();
       })
+    },
+    loadMore(){
+     this.getGoods(this.currentType);
+      //图片是异步加载的，当拉上加载的过程中，图片还没加载完成，导致图片的高度不计算在内，需要手动刷新滚动
+     //this.$refs.scroll.refresh();
+     //监听图片加载来代替上面的代码
     }
   }
 }

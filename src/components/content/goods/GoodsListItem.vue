@@ -1,6 +1,6 @@
 <template>
   <div class="good-item">
-      <img :src="goodItem.image" alt="">
+      <img :src="goodItem.image" alt="" @load="imgLoad">
       <div class="good-info">
           <p>{{goodItem.title}}</p>
           <span class='sign'>￥</span>
@@ -24,6 +24,11 @@ export default {
     filters:{
         getPrice(price){
             return price.toFixed(2);
+        }
+    },
+    methods:{
+        imgLoad(){
+            this.$bus.$emit('itemImageLoad');
         }
     }
 }
