@@ -1,17 +1,24 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
+    <tab-control 
+        @tabClick="tabClick" 
+        ref="tabControl1" 
+        :titles="['流行','新款','精选']" 
+        class="tab-control" v-show="isTabFixed"/>
     <scroll class="content"
         ref="bscroll" 
         :probe-type="3" 
-        :pull-upload="true"
+        :pull-up-load="true"
+        @pullingUp="loadMore"
         @scroll="contentScroll"
         >
-      <home-swiper :banner="banner"/>
+      <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad"/>
       <recommend-view :recommend='recommend'/>
       <feature-view/>
-      <tab-control class="tab-control" 
+      <tab-control 
         @tabClick="tabClick" 
+        ref="tabControl2" 
         :titles="['流行','新款','精选']"/>
       <goods-list :goods="goods[currentType].list"/>
     </scroll>
@@ -47,126 +54,17 @@ export default {
   },
   data(){
     return {
-      banner:[],
+      banners:[],
       recommend:[],
       currentType:'pop',
       isShowBackTop:false,
+      tabOffsetTop:0,
+      isTabFixed:false,
+      saveY:0,
       goods:{
-        'pop':{page:1,list:[
-          {
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },{
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },{
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          },{
-            link:'https://item.taobao.com/item.htm?id=615433403623&ns=1&abbucket=17#detail',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i4/1953544009/O1CN01CiyTIy1fUAQ8cL7TH_!!1953544009.jpg_360x360Q90.jpg_.webp',
-            price:69,
-            title:'女短袖宽松情侣装夏装显瘦超火反光泫雅风露脐短款上衣',
-            cfav:1200
-          }
-        ]},
-        'new':{page:0,list:[
-          {
-            link:'https://item.taobao.com/item.htm?id=599913097540&ns=1&abbucket=17',
-            image:'http://g-search3.alicdn.com/img/bao/uploaded/i4/i4/894613446/O1CN012MKYsi1bKJONEFe03_!!894613446.jpg_360x360Q90.jpg_.webp',
-            price:34.98,
-            title:'女春季2020新款韩版洋气少女宽松网红印花长袖条纹上衣潮',
-            cfav:1321
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=599913097540&ns=1&abbucket=17',
-            image:'http://g-search3.alicdn.com/img/bao/uploaded/i4/i4/894613446/O1CN012MKYsi1bKJONEFe03_!!894613446.jpg_360x360Q90.jpg_.webp',
-            price:34.98,
-            title:'女春季2020新款韩版洋气少女宽松网红印花长袖条纹上衣潮',
-            cfav:1321
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=599913097540&ns=1&abbucket=17',
-            image:'http://g-search3.alicdn.com/img/bao/uploaded/i4/i4/894613446/O1CN012MKYsi1bKJONEFe03_!!894613446.jpg_360x360Q90.jpg_.webp',
-            price:34.98,
-            title:'女春季2020新款韩版洋气少女宽松网红印花长袖条纹上衣潮',
-            cfav:1321
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=599913097540&ns=1&abbucket=17',
-            image:'http://g-search3.alicdn.com/img/bao/uploaded/i4/i4/894613446/O1CN012MKYsi1bKJONEFe03_!!894613446.jpg_360x360Q90.jpg_.webp',
-            price:34.98,
-            title:'女春季2020新款韩版洋气少女宽松网红印花长袖条纹上衣潮',
-            cfav:1321
-          }
-        ]},
-        'sell':{page:0,list:[
-          {
-            link:'https://item.taobao.com/item.htm?id=601694006838&ns=1&abbucket=17',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i3/3624224270/O1CN01eN8hPQ1hPhkwrgAgx_!!3624224270.jpg_360x360Q90.jpg_.webp',
-            price:29.98,
-            title:'春秋2020新款韩版条纹长袖短款女百搭宽松休闲学生黑色上衣潮',
-            cfav:1454
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=601694006838&ns=1&abbucket=17',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i3/3624224270/O1CN01eN8hPQ1hPhkwrgAgx_!!3624224270.jpg_360x360Q90.jpg_.webp',
-            price:29.98,
-            title:'春秋2020新款韩版条纹长袖短款女百搭宽松休闲学生黑色上衣潮',
-            cfav:1454
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=601694006838&ns=1&abbucket=17',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i3/3624224270/O1CN01eN8hPQ1hPhkwrgAgx_!!3624224270.jpg_360x360Q90.jpg_.webp',
-            price:29.98,
-            title:'春秋2020新款韩版条纹长袖短款女百搭宽松休闲学生黑色上衣潮',
-            cfav:1454
-          },
-          {
-            link:'https://item.taobao.com/item.htm?id=601694006838&ns=1&abbucket=17',
-            image:'http://g-search2.alicdn.com/img/bao/uploaded/i4/i3/3624224270/O1CN01eN8hPQ1hPhkwrgAgx_!!3624224270.jpg_360x360Q90.jpg_.webp',
-            price:29.98,
-            title:'春秋2020新款韩版条纹长袖短款女百搭宽松休闲学生黑色上衣潮',
-            cfav:1454
-          }
-        ]}
+        'pop':{page:0,list:[]},
+        'new':{page:0,list:[]},
+        'sell':{page:0,list:[]}
       }
     }
   },
@@ -174,35 +72,58 @@ export default {
     //1、请求多个数据
     this.getMultidata();
     //2、请求商品数据
-    //this.getGoods('pop')
+    this.getGoods('pop')
   },
   mounted(){
-    //3、监听item中图片加载完成
+    //1、监听item中图片加载完成
     //在created中监听可能会导致一个错误：如果scroll组件还没渲染出来，是获取不到scroll的
     //但比较频繁，需要优化,防抖函数
     const refresh=debounce(this.$refs.bscroll.refresh,500);
     this.$bus.$on('itemImageLoad',()=>{
       //this.$refs.bscroll.refresh();//这样会调用8次
       refresh();
-    })
+    });
+
+    //2、获取tabControl的offsetTop
+    //组件没有offsetTop属性
+    //所有的组件都有一个属性$el，用于获取组件中的元素
+    //this.tabOffsetTop=this.$refs.tabControl2.$el.offsetTop;//这样获取到的值不正确，因为有些图片还没加载出来
+    //一般影响的主要是轮播图的图片加载，所以需要监听轮播图的加载
+  },
+  activated(){
+    this.$refs.bscroll.scrollTo(0,this.saveY,0);
+    this.$refs.bscroll.refresh();
+  },
+  deactivated(){
+    this.saveY=this.$refs.bscroll.getScrollY();
   },
   methods:{
     //事件监听的相关方法
     tabClick(index){
       this.currentType=Object.keys(this.goods)[index];
+      this.$refs.tabControl1.currentIndex=index;
+      this.$refs.tabControl2.currentIndex=index;
     },
     //返回顶部
     backClick(){
       this.$refs.bscroll.scrollTo(0,0);
     },
-    //滚动到一定位置显示返回顶部按钮
+    //监听scroll的滚动事件
     contentScroll(position){
-      position.y<-500?this.isShowBackTop=true:this.isShowBackTop=false;
+      //1、判断BackTop是否显示
+      this.isShowBackTop=(-position.y)>1000;
+
+      //2、决定tabControl2是否吸顶（position:fixed）
+      this.isTabFixed=(-position.y)>this.tabOffsetTop;
+    },
+    //解决tabControl2吸顶问题，监听图片是否加载完成,获取offsetTop
+    swiperImageLoad(){
+      this.tabOffsetTop=this.$refs.tabControl2.$el.offsetTop;
     },
     // 网络请求相关的方法
     getMultidata(){
         getHomeMultidata().then(res=>{
-        this.banner=res.data.banner.list;
+        this.banners=res.data.banner.list;
         this.recommend=res.data.recommend.list;
       });
     },
@@ -213,7 +134,7 @@ export default {
         this.goods[type].page+=1;
 
         //完成上拉加载更多
-        this.$refs.scroll.finishPullUp();
+        this.$refs.bscroll.finishPullUp();
       })
     },
     loadMore(){
@@ -233,20 +154,30 @@ export default {
   .home-nav{
     background: var(--color-tint);
     color: #fff;
-    position: fixed;
+    /* 由于现在scroll区域的高度是固定的，滚动是在这个scroll内部进行滚动的，下面的固定定位不需要了 */
+    /* position: fixed;
     left: 0;
     right: 0;
     top: 0;
-    z-index: 9;
+    z-index: 9; */
   }
-  .tab-control{
-    /* 该属性的作用：在没有达到这个top值之前，跟着滚动，position: sticky;，当达到了，position: fixed; */
+  /* 使用了better-scroll插件后，下面这种不起效果了 */
+  /* .tab-control{
+    该属性的作用：在没有达到这个top值之前，跟着滚动，position: sticky;，当达到了，position: fixed;
     position: sticky;
     top: 44px;
+  } */
+  .tab-control{
+    position: relative;
+    z-index: 9;
   }
   .content{
     height: calc(100% - 93px);
     overflow: hidden;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
     margin-top: 44px;
   }
 </style>

@@ -1,10 +1,10 @@
 <template>
-  <div class="good-item">
-      <img :src="goodItem.image" alt="" @load="imgLoad">
+  <div class="good-item" @click="itemClick">
+      <img :src="goodItem.show.img" alt="" @load="imgLoad">
       <div class="good-info">
           <p>{{goodItem.title}}</p>
           <span class='sign'>￥</span>
-          <span class="price">{{goodItem.price|getPrice()}}</span>
+          <span class="price">{{goodItem.price}}</span>
           <span class="collect">{{goodItem.cfav}}</span>
       </div>
   </div>
@@ -22,13 +22,16 @@ export default {
         }
     },
     filters:{
-        getPrice(price){
+        getPrice:function(price){
             return price.toFixed(2);
         }
     },
     methods:{
         imgLoad(){
             this.$bus.$emit('itemImageLoad');
+        },
+        itemClick(){
+            this.$router.push('/detail/'+this.goodItem.iid);
         }
     }
 }

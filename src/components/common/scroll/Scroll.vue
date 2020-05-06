@@ -16,7 +16,7 @@ export default {
             type:Number,
             default:0
         },
-        pullUpload:{
+        pullUpLoad:{
             type:Boolean,
             default:false
         }
@@ -32,7 +32,7 @@ export default {
         this.bScroll=new BScroll(this.$refs.scroll,{
             //实时监听和上拉加载更多不一定每个组件都需要，所以不能写固定的
             probeType:this.probeType,
-            pullUpLoad:this.pullUpload,
+            pullUpLoad:this.pullUpLoad,
             click:true
         });
         //2、监听滚动的位置
@@ -43,7 +43,7 @@ export default {
         }
         
         //3、监听上拉加载更多，默认只能进行一次上拉加载更多
-        if(this.pullUpload){
+        if(this.pullUpLoad){
             this.bScroll.on('pullingUp',()=>{
                 //发送网络请求，请求更多页的数据
                 this.$emit('pullingUp');
@@ -61,6 +61,9 @@ export default {
         },
         refresh(){
             this.bScroll && this.bScroll.refresh();
+        },
+        getScrollY(){
+            return this.bScroll ? this.bScroll.y : 0;
         }
     }
 }
