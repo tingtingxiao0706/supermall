@@ -46,7 +46,11 @@ export default {
             
         },
         itemClick(){
-            this.$router.push('/detail/'+this.goodItem.iid);
+            // if(this.goodItem.iid){
+                this.$router.push('/detail/'+this.goodItem.iid)
+            // }else{
+            //     this.$router.push('/detail/'+this.goodItem.item_id)
+            // }
         }
     }
 }

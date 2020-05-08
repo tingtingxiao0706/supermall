@@ -1,14 +1,14 @@
 <template>
   <div id="detail">
-      <detail-nav-bar class="detail-nav"/>
+      <detail-nav-bar class="detail-nav" @titleClick="titleClick"/>
       <scroll class="content" ref="bscroll">
             <detail-swiper :banners="banners"/>
             <detail-base-info :goods="goods"/>
             <detail-shop-info :shop="shop"/>
             <detail-goods-info :detail-info="detailInfo" @imageLoad="imageLoad"/>
-            <detail-param-info :param-info="paramInfo"/>
-            <detail-comment-info :comment-info="commentInfo"/>
-            <goods-list :goods="recommends"/>
+            <detail-param-info ref="params" :param-info="paramInfo"/>
+            <detail-comment-info ref="comment" :comment-info="commentInfo"/>
+            <goods-list ref="recommend" :goods="recommends"/>
       </scroll>
   </div>
 </template>
@@ -43,6 +43,8 @@ export default {
             commentInfo:{},
             recommends:[],
             //itemImgListener:null，放入混入中
+            themeTopYs:[0,1000,2000,3000],
+            getThemeTopY:null
         }
     },
     //混入
@@ -85,13 +87,64 @@ export default {
                 this.commentInfo=data.rate.list[0];
             }
         });
+
+        //3、请求推荐数据
         getRecommend().then(res=>{
             this.recommends=res.data.list;
         })
+
+         /*
+            //第一次获取，值不对
+            //值不对原因：this.$refs.params.$el没有渲染
+            this.themeTopYs=[];
+            this.themeTopYs.push(0);
+            this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+
+            //导航跳转
+            this.$nextTick(()=>{
+                //第二次获取，值不对
+                //值不对的原因：图片没有计算在内
+                //根据最新数据，最新的DOM是渲染好的
+                //但是图片依然是没有加载完（目前获取到的offsetTop不包括图片）
+                //offsetTop值不对的时候，都是因为图片的问题
+                this.themeTopYs=[];
+                this.themeTopYs.push(0);
+                this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+                this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+                this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+                console.log(this.themeTopYs);
+            })
+        */
+
+       //4、给getThemeTopY赋值（对给this.getThemeTopY赋值的操作进行防抖）
+        this.getThemeTopY=debounce(()=>{
+            this.themeTopYs=[];
+            this.themeTopYs.push(0);
+            this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+            console.log(this.themeTopYs);
+        },100)
     },
     methods:{
+        //解决滚动问题
         imageLoad(){
-            this.$refs.bscroll.refresh();
+            //直接这样写的话会调用很多次，防抖就相当于无效
+            // let refresh=debounce(this.$refs.bscroll.refresh,500);
+            // refresh();
+
+            //只调用一次
+            this.refresh();
+            this.getThemeTopY();
+        },
+        titleClick(index){
+            //获取offsetTop值不能在mounted中，因为数据是异步请求过来的，也不能写在请求数据函数中，因为数据虽然请求过来了，但子组件还没渲染出来
+            //方法1：写在updated生命周期函数中,但调用频繁
+            //方法2：在请求数据的函数中使用$nextTick钩子函数，下一次轮询执行，值不对
+            //方法3：写在图片加载完成的函数中
+            this.$refs.bscroll.scrollTo(0,-this.themeTopYs[index],200);
         }
     },
     mounted(){
@@ -111,6 +164,17 @@ export default {
         //   refresh();
         // });
     },
+    /*
+        //方法2：
+        updated(){
+            this.themeTopYs=[];
+            this.themeTopYs.push(0);
+            this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+            console.log(this.themeTopYs)
+        },
+    */
     //detail页面没有进行缓存，所以没有deactivated生命周期函数,所以在destroyed生命周期函数中
     destroyed(){
         this.$bus.$off('itemImageLoad',this.itemImgListener);

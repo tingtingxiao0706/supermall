@@ -4,7 +4,7 @@
           <img src="~assets/img/common/back.svg" alt="">
       </div>
       <div slot="center" class="title">
-          <div v-for="(title,index) in titles" class="title-item" :key="index" @click="currentIndex=index" :class="{active:index===currentIndex}">
+          <div v-for="(title,index) in titles" class="title-item" :key="index" @click="titleClick(index)" :class="{active:index===currentIndex}">
               {{title}}
           </div>
       </div>
@@ -28,6 +28,10 @@ export default {
     methods:{
         backClick(){
             this.$router.back()
+        },
+        titleClick(index){
+            this.currentIndex=index;
+            this.$emit('titleClick',index);
         }
     }
 }
