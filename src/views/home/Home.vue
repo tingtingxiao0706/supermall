@@ -65,7 +65,8 @@ export default {
         'pop':{page:0,list:[]},
         'new':{page:0,list:[]},
         'sell':{page:0,list:[]}
-      }
+      },
+      itemImgListener:null
     }
   },
   created(){
@@ -74,15 +75,33 @@ export default {
     //2、请求商品数据
     this.getGoods('pop')
   },
+  //由于首页和详情页中的mounted中的代码一样，代码重复，可以使用混入来提高性能，common中的mixin文件
   mounted(){
     //1、监听item中图片加载完成
     //在created中监听可能会导致一个错误：如果scroll组件还没渲染出来，是获取不到scroll的
     //但比较频繁，需要优化,防抖函数
     const refresh=debounce(this.$refs.bscroll.refresh,500);
-    this.$bus.$on('itemImageLoad',()=>{
+
+    //还没创建详情页的写法
+    // this.$bus.$on('itemImageLoad',()=>{
+    //   //this.$refs.bscroll.refresh();//这样会调用8次
+    //   refresh();
+    // });
+
+    //解决首页和详情页监听同一个事件
+    //方式2：对监听的事件进行保存,然后在离开首页的时候取消这个事件
+    //方式2可使用混入，提高性能
+    this.itemImgListener=()=>{
       //this.$refs.bscroll.refresh();//这样会调用8次
       refresh();
-    });
+    };
+    this.$bus.$on('itemImageLoad',this.itemImgListener);
+
+    //方式1：路由
+    // this.$bus.$on('homeItemImageLoad',()=>{
+    //   //this.$refs.bscroll.refresh();//这样会调用8次
+    //   refresh();
+    // });
 
     //2、获取tabControl的offsetTop
     //组件没有offsetTop属性
@@ -95,7 +114,11 @@ export default {
     this.$refs.bscroll.refresh();
   },
   deactivated(){
+    //1、保存离开时滚动的位置
     this.saveY=this.$refs.bscroll.getScrollY();
+
+    //2、取消全局事件的监听
+    this.$bus.$off('itemImageLoad',this.itemImgListener);
   },
   methods:{
     //事件监听的相关方法
