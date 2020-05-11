@@ -31,7 +31,7 @@ export default {
         // 使用类不太好，如果其他地方也有此类，那会导致其他地方也会有
         this.bScroll=new BScroll(this.$refs.scroll,{
             //实时监听和上拉加载更多不一定每个组件都需要，所以不能写固定的
-            probeType:this.probeType,
+            probeType:this.probeType,//获取位置
             pullUpLoad:this.pullUpLoad,
             click:true
         });

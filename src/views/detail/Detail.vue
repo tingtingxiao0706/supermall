@@ -1,7 +1,7 @@
 <template>
   <div id="detail">
-      <detail-nav-bar class="detail-nav" @titleClick="titleClick"/>
-      <scroll class="content" ref="bscroll">
+      <detail-nav-bar class="detail-nav" ref="navbar" @titleClick="titleClick"/>
+      <scroll class="content" ref="bscroll" :probe-type="3" @scroll="contentScroll">
             <detail-swiper :banners="banners"/>
             <detail-base-info :goods="goods"/>
             <detail-shop-info :shop="shop"/>
@@ -10,6 +10,8 @@
             <detail-comment-info ref="comment" :comment-info="commentInfo"/>
             <goods-list ref="recommend" :goods="recommends"/>
       </scroll>
+      <back-top v-show="isShowBackTop" @click.native="backClick"/>
+      <detail-bottom-bar @addCart="addToCart"/>
   </div>
 </template>
 
@@ -21,6 +23,7 @@ import DetailShopInfo from './childComps/DetailShopInfo'
 import DetailGoodsInfo from './childComps/DetailGoodsInfo'
 import DetailParamInfo from './childComps/DetailParamInfo'
 import DetailCommentInfo from './childComps/DetailCommentInfo'
+import DetailBottomBar from './childComps/DetailBottomBar'
 
 import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
@@ -28,7 +31,7 @@ import GoodsList from 'components/content/goods/GoodsList'
 import {getDetail,Goods,Shop,GoodsParam,getRecommend} from 'network/detail'
 
 import {debounce} from 'common/utils'
-import {itemListenerMixin} from 'common/mixin'
+import {itemListenerMixin,backTopMixin} from 'common/mixin'
 
 export default {
     name:'Detail',
@@ -44,11 +47,12 @@ export default {
             recommends:[],
             //itemImgListener:null，放入混入中
             themeTopYs:[0,1000,2000,3000],
-            getThemeTopY:null
+            getThemeTopY:null,
+            currentIndex:0
         }
     },
     //混入
-    mixins:[itemListenerMixin],
+    mixins:[itemListenerMixin,backTopMixin],
     components:{
         DetailNavBar,
         DetailSwiper,
@@ -58,7 +62,8 @@ export default {
         DetailParamInfo,
         DetailCommentInfo,
         Scroll,
-        GoodsList
+        GoodsList,
+        DetailBottomBar
     },
     created(){
         //1、保存传入的iid
@@ -125,7 +130,7 @@ export default {
             this.themeTopYs.push(this.$refs.params.$el.offsetTop);
             this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
             this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
-            console.log(this.themeTopYs);
+            this.themeTopYs.push(Number.MAX_VALUE);//解决滚动内容，显示对应的标题
         },100)
     },
     methods:{
@@ -145,6 +150,51 @@ export default {
             //方法2：在请求数据的函数中使用$nextTick钩子函数，下一次轮询执行，值不对
             //方法3：写在图片加载完成的函数中
             this.$refs.bscroll.scrollTo(0,-this.themeTopYs[index],200);
+        },
+        contentScroll(position){
+            //1、获取y值
+            const positionY=-position.y;
+
+            //2、positionY与主题中值进行对比
+            // for(let i in this.themeTopYs){
+                //问题1：es6语法存在的问题，这里的i是字符串，不是number类型
+                //问题2：i+1最后一个是undefined
+                //问题3：频繁操作
+                // if(positionY>this.themeTopYs[i] && positionY<this.themeTopYs[i+1]){
+                //     this.$refs.navbar.currentIndex=i;
+                // }
+
+                let length=this.themeTopYs.length;
+                // i=parseInt(i);//将i转换为number类型
+                //this.currentIndex!=i解决频繁操作
+
+                //普通写法：不需要给this.themeTopYs再添加一个值
+                // if(this.currentIndex!=i && ((i<length-1 && positionY>=this.themeTopYs[i] && positionY<this.themeTopYs[i+1])||(i==length-1 && positionY>=this.themeTopYs[i]))){
+                //     this.currentIndex=i;
+                //     this.$refs.navbar.currentIndex=i;
+                //     console.log(i)
+                // }
+            // }   
+            for(let i=0;i<length-1;i++){
+                //hack写法：给this.themeTopYs再添加一个值，就是Number.MAX_VALUE。这种写法能提高性能
+                if(this.currentIndex!=i && (positionY>=this.themeTopYs[i] && positionY<this.themeTopYs[i+1])){
+                    this.currentIndex=i;
+                    this.$refs.navbar.currentIndex=i;
+                }
+            }
+
+            //3、是否返回顶部，使用混入，首页也可以使用混入
+            this.listenShowBackTop(position);
+        },
+        addToCart(){
+            //1、获取购物车需要展示的信息
+            const product={}
+            product.image=this.banners[0];
+            product.title=this.goods.title;
+            product.desc=this.goods.desc;
+            product.price=this.goods.realPrice;
+            product.iid=this.iid;
+            this.$store.dispatch('addCart',product);
         }
     },
     mounted(){
@@ -195,6 +245,6 @@ export default {
         z-index: 9;
     }
     .content{
-        height: calc(100% - 44px);
+        height: calc(100% - 44px - 49px);
     }
 </style>

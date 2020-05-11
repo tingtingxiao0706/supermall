@@ -2,7 +2,7 @@
   <swiper>
       <swiper-item v-for="(item,index) in banners" :key="index">
         <a :href="item.link">
-          <img :src="item.image" alt="" @load="iamgeLoad">
+          <img :src="item.image" alt="" @load="imageLoad">
         </a>
       </swiper-item>
     </swiper>
@@ -31,7 +31,7 @@ export default {
         }
     },
     methods:{
-      iamgeLoad(){
+      imageLoad(){
         //轮播图里有很多张图片，但只要发送一次就可以了
         if(!this.isLoad){
           this.$emit('swiperImageLoad')
