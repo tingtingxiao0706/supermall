@@ -12,6 +12,7 @@
       </scroll>
       <back-top v-show="isShowBackTop" @click.native="backClick"/>
       <detail-bottom-bar @addCart="addToCart"/>
+      <toast :message="message" :show="show"/>
   </div>
 </template>
 
@@ -27,11 +28,14 @@ import DetailBottomBar from './childComps/DetailBottomBar'
 
 import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
+import Toast from 'components/common/toast/Toast'
 
 import {getDetail,Goods,Shop,GoodsParam,getRecommend} from 'network/detail'
 
 import {debounce} from 'common/utils'
 import {itemListenerMixin,backTopMixin} from 'common/mixin'
+
+import {mapActions} from 'vuex'
 
 export default {
     name:'Detail',
@@ -48,7 +52,9 @@ export default {
             //itemImgListener:null，放入混入中
             themeTopYs:[0,1000,2000,3000],
             getThemeTopY:null,
-            currentIndex:0
+            currentIndex:0,
+            message:'',
+            show:false
         }
     },
     //混入
@@ -63,7 +69,8 @@ export default {
         DetailCommentInfo,
         Scroll,
         GoodsList,
-        DetailBottomBar
+        DetailBottomBar,
+        Toast
     },
     created(){
         //1、保存传入的iid
@@ -134,6 +141,7 @@ export default {
         },100)
     },
     methods:{
+        ...mapActions(['addCart']),
         //解决滚动问题
         imageLoad(){
             //直接这样写的话会调用很多次，防抖就相当于无效
@@ -194,7 +202,21 @@ export default {
             product.desc=this.goods.desc;
             product.price=this.goods.realPrice;
             product.iid=this.iid;
-            this.$store.dispatch('addCart',product);
+            //2、将商品添加到购物车里（1.promise 2.mapActions)
+            // this.$store.dispatch('addCart',product).then(res=>{
+            //     console.log(res);
+            // })
+            //可使用mapActions
+            this.addCart(product).then(res=>{
+                this.message=res;
+                this.show=true;
+
+                setTimeout(()=>{
+                    this.message='';
+                    this.show=false;
+                },1500)
+            })
+
         }
     },
     mounted(){

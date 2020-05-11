@@ -2,15 +2,20 @@ import {ADD_COUNTER,ADD_TO_CART} from './mutations_type'
 
 export default {
     addCart(context,payload){
-        let oldProduct=context.state.cartList.find((item)=>{
-            return item.iid===payload.iid
+        //为了显示提示框，这里使用异步
+        return new Promise((resolve,reject)=>{
+            let oldProduct=context.state.cartList.find((item)=>{
+                return item.iid===payload.iid
+            })
+    
+            //判断oldProduct
+            if(oldProduct){//数量加1
+                context.commit(ADD_COUNTER,oldProduct);
+                resolve('当前的商品数量+1');
+            }else{//添加新的商品
+                context.commit(ADD_TO_CART,payload);
+                resolve('添加了新的商品');
+            }
         })
-
-        //判断oldProduct
-        if(oldProduct){
-            context.commit(ADD_COUNTER,oldProduct);
-        }else{
-            context.commit(ADD_TO_CART,payload);
-        }
     }
 }
