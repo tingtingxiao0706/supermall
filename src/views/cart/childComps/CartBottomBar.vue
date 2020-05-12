@@ -8,7 +8,7 @@
           <span>合计：￥</span>
           <span class="total-price">{{totalPrice}}</span>
       </div>
-      <div class="calculate">结算({{cartListLength}})</div>
+      <div @click="calcClick" class="calculate">结算({{cartListLength}})</div>
   </div>
 </template>
 
@@ -47,6 +47,12 @@ export default {
                 this.$store.commit('totalUnselected');
             }else{
                 this.$store.commit('totalSelected');
+            }
+        },
+        calcClick(){
+            if(!this.isSelectAll){
+                //调用toast插件
+                this.$toast.show('请选择购买的商品',1500);
             }
         }
     }

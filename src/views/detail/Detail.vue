@@ -12,7 +12,7 @@
       </scroll>
       <back-top v-show="isShowBackTop" @click.native="backClick"/>
       <detail-bottom-bar @addCart="addToCart"/>
-      <toast :message="message" :show="show"/>
+      <!-- <toast :message="message" :show="show"/> -->
   </div>
 </template>
 
@@ -28,7 +28,7 @@ import DetailBottomBar from './childComps/DetailBottomBar'
 
 import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
-import Toast from 'components/common/toast/Toast'
+// import Toast from 'components/common/toast/Toast'    
 
 import {getDetail,Goods,Shop,GoodsParam,getRecommend} from 'network/detail'
 
@@ -70,7 +70,7 @@ export default {
         Scroll,
         GoodsList,
         DetailBottomBar,
-        Toast
+        // Toast
     },
     created(){
         //1、保存传入的iid
@@ -208,13 +208,18 @@ export default {
             // })
             //可使用mapActions
             this.addCart(product).then(res=>{
-                this.message=res;
-                this.show=true;
 
-                setTimeout(()=>{
-                    this.message='';
-                    this.show=false;
-                },1500)
+                //toast未封装成插件前的写法
+                // this.message=res;
+                // this.show=true;
+
+                // setTimeout(()=>{
+                //     this.message='';
+                //     this.show=false;
+                // },1500)
+
+                //toast封装成插件的方式
+                this.$toast.show(res,1500);
             })
 
         }
@@ -267,6 +272,6 @@ export default {
         z-index: 9;
     }
     .content{
-        height: calc(100% - 44px - 49px);
+        height: calc(100% - 44px - 58px);
     }
 </style>
