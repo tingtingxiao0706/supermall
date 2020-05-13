@@ -1,6 +1,9 @@
 <template>
   <div class="good-item" @click="itemClick">
-      <img :src="showImage" alt="" @load="imgLoad">
+      <!-- 没有使用懒加载的情况 -->
+      <!-- <img :src="showImage" alt="" @load="imgLoad"> -->
+      <!-- 懒加载情况 -->
+      <img v-lazy="showImage" alt="" @load="imgLoad">
       <div class="good-info">
           <p>{{goodItem.title}}</p>
           <span class='sign'>￥</span>

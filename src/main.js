@@ -3,6 +3,16 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
+//解决移动端点击延迟300ms的问题
+import FastClick from 'fastclick'
+FastClick.attach(document.body);
+
+//图片懒加载
+import vueLazyLoad from 'vue-lazyload'
+Vue.use(vueLazyLoad,{
+  loading:require('./assets/img/common/placeholder.png')
+})
+
 //引入toast
 import toast from 'components/common/toast'
 
